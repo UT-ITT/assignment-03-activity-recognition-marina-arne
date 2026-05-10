@@ -6,15 +6,26 @@ Captures IMU sensor data from a DIPPID device and saves it as a CSV file for act
 
 **Usage:**
 
+1. Start in Terminal:
 ```
 python3 gather-data.py <name> <number>
 ```
 
 Example: `python3 gather-data.py arne 1`
 
+2. Select activity to capture data from selection list via numbers
+```
+[1] running
+[2] rowing
+[3] lifting
+[4] jumpingjacks
+```
+3. Press Button 1 to start the 10 secons capture
+4. Have fun doing something good for science (and your health)
+
 **How it works:**
 
-- Connects to the DIPPID device via UDP (default port 5700)
+- Connects to the DIPPID device via UDP 
 - Waits for **Button 1** press on the device to start recording
 - Records accelerometer (`acc_x/y/z`) and gyroscope (`gyro_x/y/z`) data for **10 seconds**
 - Resamples the data to **100 Hz** using pandas
