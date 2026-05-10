@@ -7,126 +7,98 @@ import pandas as pd
 from DIPPID import SensorUDP
 
 CAPTURE_DURATION = 10   # seconds
-TARGET_HZ = 100
-DEFAULT_PORT = 5700
-VALID_ACTIVITIES = {"running", "rowing", "lifting", "jumpingjacks"}
+PORT = 5700
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+rows = []
+recording = False
+start_time = 0.0
+sensor = SensorUDP(PORT)
 
+# user interaction DIPPID app
+def on_button(value):
+    global recording, rows, start_time
+    if value == 1 and not recording:
+        rows = []
+        start_time = time.time()
+        recording = True
+        print("Lets gather some dataaaa")
+# get activity data
+def on_accel(_):
+    global recording, rows
+    if not recording:
+        return
+    
+    accel = sensor.get_value("accelerometer")
+    gyro = sensor.get_value("gyroscope")
 
-def parse_args():
-    if len(sys.argv) < 4:
-        print(__doc__)
-        sys.exit(1)
-    name = sys.argv[1].lower()
-    activity = sys.argv[2].lower()
-    number = sys.argv[3]
-    port = int(sys.argv[4]) if len(sys.argv) > 4 else DEFAULT_PORT
-    if activity not in VALID_ACTIVITIES:
-        print(f"Warning: '{activity}' is not a standard activity {sorted(VALID_ACTIVITIES)}")
-    return name, activity, number, port
+    if accel is None or gyro is None:
+        return
+    
+    rows.append({
+        "timestamp": time.time(),
+        "acc_x": accel.get("x", 0),
+        "acc_y": accel.get("y", 0),
+        "acc_z": accel.get("z", 0),
+        "gyro_x": gyro.get("x", 0),
+        "gyro_y": gyro.get("y", 0),
+        "gyro_z": gyro.get("z", 0),
+    })
 
+if len(sys.argv) != 3:
+    print("Usage: python gather-data.py <name> <number>")
+    sys.exit(1)
 
-def make_callbacks(sensor, recording_state):
-    """Return (on_button, on_accelerometer) closures that share recording_state dict."""
+name = sys.argv[1]
+number = sys.argv[2]
 
-    def on_button(value):
-        if value == 1 and not recording_state["active"]:
-            print(f"\n[START] Recording '{recording_state['activity']}' "
-                  f"for {CAPTURE_DURATION} s  →  {recording_state['filename']}")
-            recording_state["rows"] = []
-            recording_state["start"] = time.time()
-            recording_state["active"] = True
+valid_activities = ["running", "rowing", "lifting", "jumpingjacks"]
 
-    def on_accelerometer(_):
-        if not recording_state["active"]:
-            return
-        acc = sensor.get_value("accelerometer")
-        gyro = sensor.get_value("gyroscope")
-        if acc is None or gyro is None:
-            return
-        recording_state["rows"].append({
-            "timestamp": time.time(),
-            "acc_x":  acc.get("x", 0.0),
-            "acc_y":  acc.get("y", 0.0),
-            "acc_z":  acc.get("z", 0.0),
-            "gyro_x": gyro.get("x", 0.0),
-            "gyro_y": gyro.get("y", 0.0),
-            "gyro_z": gyro.get("z", 0.0),
-        })
+print("\n Choose your activity!!!")
+# selection of activities
+for i, act in enumerate(valid_activities):
+    print(f"[{i+1}] {act}")
 
-    return on_button, on_accelerometer
+while True:
+    choice = input("Please enter number: ")
+    if choice.isdigit() and 1 <= int(choice) <= len(valid_activities):
+        activity = valid_activities[int(choice) - 1]
+        break
+    else:
+        print("Not a valid number >:((((")
 
+print(f"\n selected: {activity}")
 
-def wait_for_capture(recording_state):
-    """Block until 10 s of data have been collected. Returns False if interrupted."""
-    try:
-        while True:
-            if recording_state["active"]:
-                if (time.time() - recording_state["start"]) >= CAPTURE_DURATION:
-                    print("[STOP]  Capture finished.")
-                    return True
-            time.sleep(0.005)
-    except KeyboardInterrupt:
-        print("\nAborted by user – no file saved.")
-        return False
+filename = f"data/{name}-{activity}-{number}.csv"
+os.makedirs("data", exist_ok=True)
 
+print(f"Connecting to port {PORT}")
+time.sleep(1)
 
-def resample_and_save(rows, filename):
-    df = pd.DataFrame(rows)
-    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
-    df = df.set_index("timestamp").sort_index()
+sensor.register_callback("button_1", on_button)
+sensor.register_callback("accelerometer", on_accel)
 
-    period_ms = 1000 // TARGET_HZ
-    df_rs = (df
-             .resample(f"{period_ms}ms")
-             .mean()
-             .interpolate(method="time")
-             .dropna())
-
-    df_rs.reset_index(inplace=True)
-    df_rs.insert(0, "id", range(len(df_rs)))
-    df_rs.to_csv(filename, index=False, sep=";", decimal=",")
-    print(f"Saved {len(df_rs)} rows at {TARGET_HZ} Hz  →  {filename}")
-
-
-def main():
-    name, activity, number, port = parse_args()
-
-    os.makedirs(DATA_DIR, exist_ok=True)
-    filename = os.path.join(DATA_DIR, f"{name}-{activity}-{number}.csv")
-
-    print(f"Connecting to DIPPID on UDP port {port} ...")
-    sensor = SensorUDP(port)
-    time.sleep(1)  # allow sensor to start sending
-
-    recording_state = {
-        "active": False,
-        "start": None,
-        "rows": [],
-        "activity": activity,
-        "filename": filename,
-    }
-
-    on_button, on_accelerometer = make_callbacks(sensor, recording_state)
-    sensor.register_callback("button_1", on_button)
-    sensor.register_callback("accelerometer", on_accelerometer)
-
-    print(f"Ready. Press Button 1 on the DIPPID device to start a {CAPTURE_DURATION}-second recording.")
-    print("(Press Ctrl+C to quit without saving)\n")
-
-    captured = wait_for_capture(recording_state)
+print("Ready. Time to make some nooooooise!")
+# record activity for only 10 seconds
+try:
+    while True:
+        if recording and (time.time() - start_time >= CAPTURE_DURATION):
+            recording = False
+            print("Great job!!")
+            break
+        time.sleep(0.01)
+except KeyboardInterrupt:
+    print("Canceled :(")
     sensor.disconnect()
+    sys.exit(0)
 
-    if not captured:
-        sys.exit(0)
-
-    if not recording_state["rows"]:
-        print("No sensor data was captured. Make sure the DIPPID device is sending data.")
-        sys.exit(1)
-
-    resample_and_save(recording_state["rows"], filename)
-
-
-if __name__ == "__main__":
-    main()
+sensor.disconnect()
+# resampling to 100 Hz
+df = pd.DataFrame(rows)
+df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
+df = df.set_index("timestamp").sort_index()
+df = df.resample("10ms").mean().interpolate(method="time").dropna()
+df = df.reset_index()
+df.insert(0, "id", range(len(df)))
+# file save 
+df.to_csv(filename, index=False, sep=";", decimal=",")
+print(f"Saved: {filename} ({len(df)} rows)")
