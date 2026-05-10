@@ -7,7 +7,7 @@ Captures IMU sensor data from a DIPPID device and saves it as a CSV file for act
 **Usage:**
 
 ```
-python3 gather-data.py <name> <activity> <number> [udp_port]
+python3 gather-data.py <name> <number>
 ```
 
 Example: `python3 gather-data.py arne running 1`
