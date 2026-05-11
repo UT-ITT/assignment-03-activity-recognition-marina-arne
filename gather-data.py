@@ -98,6 +98,8 @@ df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
 df = df.set_index("timestamp").sort_index()
 df = df.resample("10ms").mean().interpolate(method="time").dropna()
 df = df.reset_index()
+# convert timestamp
+df["timestamp"] = df["timestamp"].astype("int64") // 10**3
 df.insert(0, "id", range(len(df)))
 # file save 
 df.to_csv(filename, index=False, sep=",", decimal=".")
