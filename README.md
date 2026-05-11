@@ -20,7 +20,7 @@ Example: `python3 gather-data.py arne 1`
 [3] lifting
 [4] jumpingjacks
 ```
-3. Press Button 1 to start the 10 secons capture
+3. Press Button 1 to start the 10 seconds capture
 4. Have fun doing something good for science (and your health)
 
 **How it works:**
