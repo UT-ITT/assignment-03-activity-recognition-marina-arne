@@ -25,7 +25,7 @@ import os
 
 path = "./dataset"
 
-# prepare klarazwettler data (contains twice id)
+# prepare klarazwettler data (contains twice id column)
 klara_path = "./klarazwettler"
 
 klara_csv = glob.glob(os.path.join(klara_path, "*.csv"))
@@ -41,20 +41,43 @@ for file_path in klara_csv:
     df_cleanup.to_csv(target_path, index=False)
 print("done? lets cheeeck")
 
-join_csv = glob.glob(os.path.join(path, "*.csv"))
+# prepare all data for edge case (missing values of some columns)
+# you can read more in the readme.md file under the subsection "Preperation of Dataset"
 
-# clear empty rows with missing data for all
+cleanup_path = "./dataset-cleaned"
+
+dataset_csv = glob.glob(os.path.join(path, "*.csv"))
+print("pray to any god that it works")
+
+for file_path in dataset_csv:
+    df = pd.read_csv(file_path)
+    # checking for rows with 0 and columns with 1
+    df_cleaned = df.dropna(axis=0)
+
+    file_names = os.path.basename(file_path)
+    target_path = os.path.join(cleanup_path, file_names)
+
+    df_cleaned.to_csv(target_path, index=False)
+print("lets see if the prayer worked")
+
+join_csv = glob.glob(os.path.join(cleanup_path, "*.csv"))
 
 df_list = []
+class_dict = {"rowing": 0, 
+              "running": 1, 
+              "lifting": 2,
+              "jumpingjacks": 3}
 
-# go through every file, take the exercise from filename and add as new column classification
+
+# go through every file, take the exercise from filename and add as new column classification with correlated indicies
 for file_path in join_csv:
     file_name = os.path.basename(file_path)
     name_cut = file_name.replace(".csv", "")
     name_split = name_cut.split("-")
-    exercise =name_split[1]
+    exercise = name_split[1]
+    class_exercise = class_dict.get(exercise)
     df_temp = pd.read_csv(file_path)
-    df_temp["classification"] = exercise
+    df_temp["classification"] = class_exercise
     df_list.append(df_temp)
 
 #df_list = [pd.read_csv(file) for file in join_csv]
@@ -64,7 +87,26 @@ train_set, test_set = train_test_split(df_collection, test_size=0.30, random_sta
 
 train_set.to_csv("train_set.csv", index=False)
 test_set.to_csv("test_set.csv", index=False)
+print("finally the test dataset and training dataset was created! Now lets go to work!")
 
-print(f"Training Set (70%): {len(train_set)}")
-print(f"Test Set (30%): {len(test_set)}")
-print(df_collection["classification"].value_counts())
+
+# mean removal train data
+train_data = pd.read_csv("train_set.csv")
+
+scaler = StandardScaler()
+scaled_samples = scaler.fit_transform(train_data[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
+
+train_mean = train_data.copy()
+train_mean[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']] = scaled_samples
+# minmax scaler
+mms = MinMaxScaler()
+mms.fit(train_mean[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
+
+# normalized
+scaled_samples = s.transform(train_mean[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
+train_normalized = train_mean.copy()
+train_normalized[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']] = scaled_samples
+
+# train ML classifier
+
+
