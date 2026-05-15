@@ -53,13 +53,13 @@ for file_path in dataset_csv:
     keep_indices = [col for col in col_structure if col in df.columns]
     df_cleanup = df[keep_indices]
     # checking for rows with 0 and columns with 1
-    df_cleaned = df_cleanup.dropna(axis=0)
+    df_cleaned = df_cleanup.dropna(axis=0).copy()
     # filtering of noise
     # only filter if columns are available
     sensor_check = [col for col in sensor_col if col in df_cleaned.columns]
     if sensor_check:
         # take 5 values combined and create average for signal processing 
-        df_cleaned[sensor_col] = df_cleaned[sensor_check].rolling(window=5, min_periods=1).mean()
+        df_cleaned[sensor_col] = df_cleaned[sensor_check].rolling(window=20, min_periods=1).mean()
     # get exercise from filename and row with corresponding classification
     file_name = os.path.basename(file_path)
     name_cut = file_name.replace(".csv", "")
@@ -96,14 +96,13 @@ y_train = train_data['classification']
 # pipeline contains scaler and svm
 clf_pipeline = Pipeline([
     ("scaler", StandardScaler()),
+    # RandomForestClassifier
+    #("rf", RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1))
     ("svm", SVC(kernel='rbf', C=1.0))
 ])
 
 #runs first scaler than combines with svm
 clf_pipeline.fit(x_train, y_train)
-
-scaler = StandardScaler()
-scaled_samples = scaler.fit_transform(train_data[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
 
 joblib.dump(clf_pipeline, 'svm_pipeline.pkl')
 
