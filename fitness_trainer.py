@@ -25,9 +25,23 @@ import os
 
 path = "./dataset"
 
-join_csv = glob.glob(os.path.join(path, "*.csv"))
+# prepare klarazwettler data (contains twice id)
+klara_path = "./klarazwettler"
 
-# prepare klarazettler data (contains twice id)
+klara_csv = glob.glob(os.path.join(klara_path, "*.csv"))
+# iterate through every file and delete the second id column and save in folder dataset
+for file_path in klara_csv:
+    df = pd.read_csv(file_path)
+    keep_indices = [i for i in range(len(df.columns)) if i != 2]
+    df_cleanup = df.iloc[:, keep_indices]
+
+    file_names = os.path.basename(file_path)
+    target_path = os.path.join(path, file_names)
+
+    df_cleanup.to_csv(target_path, index=False)
+print("done? lets cheeeck")
+
+join_csv = glob.glob(os.path.join(path, "*.csv"))
 
 # clear empty rows with missing data for all
 
