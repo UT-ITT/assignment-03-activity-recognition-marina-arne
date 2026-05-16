@@ -12,9 +12,7 @@ import pandas as pd
 from DIPPID import SensorUDP
 
 #TODO
-#scale pictures for window
-#print accuracy
-#add background
+# label colors
 
 
 # import font
@@ -24,8 +22,8 @@ play_reg = font.load('Play')
 PORT = 5700
 
 sensor = SensorUDP(PORT)
-WIDTH_SIZE = 600
-HEIGHT_SIZE = 800
+WIDTH_SIZE = 1280
+HEIGHT_SIZE = 720
 
 bg_batch = pyglet.graphics.Batch()
 sprite_batch = pyglet.graphics.Batch()
@@ -37,9 +35,8 @@ bg_sprite.scale_x = WIDTH_SIZE / gym_bg.width
 bg_sprite.scale_y = HEIGHT_SIZE / gym_bg.height
 
 win = pyglet.window.Window(WIDTH_SIZE, HEIGHT_SIZE, caption="Gymarino")
-
-pyglet.gl.glClearColor(1, 1, 1, 1)
-
+#comment in for white background instead of gym background
+#pyglet.gl.glClearColor(1, 1, 1, 1)
 
 TARGET_TIME = 10.0
 current_streak_time = 0.0
@@ -55,7 +52,10 @@ correct_frames = 0
 total_frames = 0
 last_exercise_score = ""
 
-
+# dictionary of results 
+workout_results = []
+overview_generated = False
+overview_labels = []
 
 class_dict_reverse = {0: "rowing", 1: "running", 2: "lifting", 3: "jumpingjacks"}
 current_activity = "Waiting for the moves..."
@@ -87,6 +87,7 @@ try:
         activity_animations[act] = Animation.from_image_sequence(
             [img1, img2], duration=0.4, loop=True # type: ignore
         )
+
 except FileNotFoundError as e:
     print("No imagerinos found")
     activity_animations = {}
@@ -95,21 +96,21 @@ current_sprite = None
 
 # text labels
 instruction_label = pyglet.text.Label(
-    text = "GET READY", font_name='Play', font_size=42,
+    text = "GET READY", font_name='Play', font_size=28,
     x=win.width // 2, y = win.height - 100,
     anchor_x='center', anchor_y='center', color=(255, 0, 100, 255),
     batch=ui_batch
 )
 
 timer_label = pyglet.text.Label(
-    text = "", font_name='Play', font_size=36,
+    text = "", font_name='Play', font_size=28,
     x=win.width // 2, y = win.height - 160,
     anchor_x='center', anchor_y='center', color=(50, 50, 50, 255),
     batch=ui_batch
 )
 
 feedback_label = pyglet.text.Label(
-    text = "", font_name='Play', font_size=36,
+    text = "", font_name='Play', font_size=28,
     # height in 60er steps since 60 is a nice number
     x=win.width // 2, y = win.height - 220,
     anchor_x='center', anchor_y='center', color=(100, 100, 100, 255),
@@ -117,9 +118,17 @@ feedback_label = pyglet.text.Label(
 )
 
 scoreboard_label = pyglet.text.Label(
-    text = "Score will appear here", font_name='Play', font_size=36,
+    text = "Score will appear here", font_name='Play', font_size=28,
     x=win.width // 2, y = 100,
     anchor_x='center', anchor_y='center', color=(100, 100, 255, 255),
+    batch=ui_batch
+)
+
+results_label = pyglet.text.Label(
+    text = "", font_name='Play', font_size=24,
+    x=win.width // 2, y = win.height // 2 - 50,
+    anchor_x='center', anchor_y='center', color=(0, 0, 0, 255),
+    width=win.width, multiline=True, align='center',
     batch=ui_batch
 )
 
@@ -128,6 +137,7 @@ features = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z', 'acc_mag', 
 # get activity data
 def update_prediction(dt):
     global game_timer, current_game_index, correct_frames, total_frames, last_exercise_score, last_activity, current_sprite
+    global overview_generated
     
 # game over check
     if current_game_index >=len(GAME_PLAYLIST):
@@ -138,6 +148,17 @@ def update_prediction(dt):
         # deleting sprites after use
         if current_sprite is not None:
             current_sprite.delete()
+        # overview of all results
+        if not overview_generated:
+            overview_generated = True
+            # _, since we have dictionary
+            total_acc = sum(acc for _, acc in workout_results) / len(workout_results) if workout_results else 0
+            
+            overview_text = f">>> TOTAL SCORE: {total_acc:.1f}% <<<\n\n"
+            for act, acc in workout_results:
+                overview_text += f"{act.upper()}: {acc:.1f}%\n"
+            
+            results_label.text = overview_text
 
         current_sprite = None
         return
@@ -210,6 +231,8 @@ def update_prediction(dt):
         # activity score feedback
         if game_timer > TARGET_TIME:
             accuracy = (correct_frames / total_frames) * 100
+
+            workout_results.append((target_activity, accuracy))
             
             if accuracy > 90: rating = "PERFECT"
             elif accuracy > 75: rating = "GREAT"
