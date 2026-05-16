@@ -1,8 +1,4 @@
 # this program recognizes activities
-import matplotlib
-from matplotlib import pyplot as plt
-from sklearn import svm # scikit-learn
-import seaborn as sns # for nice visualizations
 import pandas as pd # for loading the data from csv
 import numpy as np
 from sklearn.preprocessing import scale, StandardScaler
@@ -10,10 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.ensemble import RandomForestClassifier
-from sklearn import svm
 import glob 
 import joblib
-from sklearn.svm import SVC
 import os
 import argparse
 
