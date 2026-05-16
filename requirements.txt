@@ -1,9 +1,6 @@
 pandas
-matplotlib
 pyglet
 scikit-learn
-seaborn
 numpy
-sklearn
 glob
 joblib
