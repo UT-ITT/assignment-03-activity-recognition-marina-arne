@@ -44,3 +44,7 @@ Example: `python3 gather-data.py arne 1`
     - The classification with rows to keep was that every row that had one missing value will be deleted (not included in our training/test dataset). Why? Because we can't exchange those missing values with benchmark/baseline values and know that those would be outliers.
 
 
+## sources
+magnitude formula: https://www.cuemath.com/magnitude-of-a-vector-formula/
+
+####https://www.datacamp.com/tutorial/svm-classification-scikit-learn-python
