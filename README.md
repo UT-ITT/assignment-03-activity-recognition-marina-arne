@@ -45,6 +45,7 @@ Example: `python3 gather-data.py arne 1`
 
 
 ## sources
-magnitude formula: https://www.cuemath.com/magnitude-of-a-vector-formula/
+- pyglet batch: https://pyglet.readthedocs.io/en/latest/modules/graphics/index.html
+- magnitude formula: https://www.cuemath.com/magnitude-of-a-vector-formula/
 
-####https://www.datacamp.com/tutorial/svm-classification-scikit-learn-python
+- gym pic: https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.muellers-gym.de%2F&ved=0CBUQjRxqFwoTCLD0z5T0vpQDFQAAAAAdAAAAABAh&opi=89978449
