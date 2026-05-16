@@ -30,7 +30,7 @@ HEIGHT_SIZE = 800
 bg_batch = pyglet.graphics.Batch()
 sprite_batch = pyglet.graphics.Batch()
 ui_batch = pyglet.graphics.Batch()
-gym_bg = resource.image("./assets/gym.png")
+gym_bg = resource.image("assets/gym.png")
 bg_sprite = pyglet.sprite.Sprite(img=gym_bg, batch=bg_batch)
 
 bg_sprite.scale_x = WIDTH_SIZE / gym_bg.width
