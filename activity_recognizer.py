@@ -9,6 +9,7 @@ from sklearn.preprocessing import scale, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
 import glob 
 import joblib
@@ -44,7 +45,9 @@ class_dict = {"rowing": 0,
               "jumpingjacks": 3}
 
 col_structure = ['id', 'timestamp', 'acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
-sensor_col = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
+
+#Magnitude Columns (https://www.cuemath.com/magnitude-of-a-vector-formula/)
+sensor_col = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z', 'acc_mag', 'gyro_mag']
 
 
 for file_path in dataset_csv:
@@ -54,6 +57,12 @@ for file_path in dataset_csv:
     df_cleanup = df[keep_indices]
     # checking for rows with 0 and columns with 1
     df_cleaned = df_cleanup.dropna(axis=0).copy()
+
+    base_cols = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
+    if all(col in df_cleaned.columns for col in base_cols):
+        df_cleaned['acc_mag'] = np.sqrt(df_cleaned['acc_x']**2 + df_cleaned['acc_y']**2 + df_cleaned['acc_z']**2)
+        df_cleaned['gyro_mag'] = np.sqrt(df_cleaned['gyro_x']**2 + df_cleaned['gyro_y']**2 + df_cleaned['gyro_z']**2)
+    
     # filtering of noise
     # only filter if columns are available
     sensor_check = [col for col in sensor_col if col in df_cleaned.columns]
@@ -88,7 +97,7 @@ print("Now lets do some training!")
 # mean removal
 train_data = pd.read_csv("train_set.csv")
 
-sensor_data = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
+sensor_data = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z', 'acc_mag', 'gyro_mag']
 
 x_train = train_data[sensor_data]
 y_train = train_data['classification']
@@ -96,9 +105,9 @@ y_train = train_data['classification']
 # pipeline contains scaler and svm
 clf_pipeline = Pipeline([
     ("scaler", StandardScaler()),
-    # RandomForestClassifier
-    #("rf", RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1))
-    ("svm", SVC(kernel='rbf', C=1.0))
+    ("rf", RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1))
+    # with RandomForest the accuracy skyrocketet over 10% in comparison to the method with svc kernel
+    #("svm", SVC(kernel='rbf', C=2.0))
 ])
 
 #runs first scaler than combines with svm
@@ -109,7 +118,7 @@ joblib.dump(clf_pipeline, 'svm_pipeline.pkl')
 print("We prepared the Model some meal (data) and fed it. Now lets test if we actually fed it right")
 
 test_data = pd.read_csv("test_set.csv")
-features = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
+features = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z', 'acc_mag', 'gyro_mag']
 
 x_test = test_data[features]
 y_test = test_data['classification']
@@ -118,6 +127,7 @@ pipeline = joblib.load('svm_pipeline.pkl')
 
 # prediction
 y_pred = pipeline.predict(x_test)
+
 
 accuracy = accuracy_score(y_test, y_pred)
 print(f"and the accuracy is *drumroll* {accuracy * 100:.2f}%")
