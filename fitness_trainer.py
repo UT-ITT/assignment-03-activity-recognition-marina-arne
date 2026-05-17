@@ -12,7 +12,7 @@ import pandas as pd
 from DIPPID import SensorUDP
 
 #TODO
-# label colors
+# color
 
 
 # import font
@@ -30,6 +30,7 @@ sprite_batch = pyglet.graphics.Batch()
 ui_batch = pyglet.graphics.Batch()
 gym_bg = resource.image("assets/gym.png")
 bg_sprite = pyglet.sprite.Sprite(img=gym_bg, batch=bg_batch)
+bg_sprite.opacity = 75
 
 bg_sprite.scale_x = WIDTH_SIZE / gym_bg.width
 bg_sprite.scale_y = HEIGHT_SIZE / gym_bg.height
@@ -105,7 +106,7 @@ instruction_label = pyglet.text.Label(
 timer_label = pyglet.text.Label(
     text = "", font_name='Play', font_size=28,
     x=win.width // 2, y = win.height - 160,
-    anchor_x='center', anchor_y='center', color=(50, 50, 50, 255),
+    anchor_x='center', anchor_y='center', color=(255, 255, 255, 255),
     batch=ui_batch
 )
 
@@ -125,9 +126,9 @@ scoreboard_label = pyglet.text.Label(
 )
 
 results_label = pyglet.text.Label(
-    text = "", font_name='Play', font_size=24,
+    text = "", font_name='Play', font_size=16,
     x=win.width // 2, y = win.height // 2 - 50,
-    anchor_x='center', anchor_y='center', color=(0, 0, 0, 255),
+    anchor_x='center', anchor_y='center', color=(100, 100, 255, 255),
     width=win.width, multiline=True, align='center',
     batch=ui_batch
 )
@@ -223,7 +224,7 @@ def update_prediction(dt):
             feedback_label.text = "OFFICER ARREST THEM, because they killed it"
             feedback_label.color = (0, 180, 0, 255)
         else:
-            feedback_label.text = f"Somebody can't follow instruuuctions. WRONG WORKOUT! (Detecting{smoothed_activity})"
+            feedback_label.text = f"WRONG WORKOUT! (You're doing {smoothed_activity})"
             feedback_label.color = (200, 0, 0, 255)
 
         time_left = max(0.0, TARGET_TIME - game_timer)
@@ -239,7 +240,7 @@ def update_prediction(dt):
             elif accuracy > 50: rating = "GOOD"
             else: rating = "OK"
 
-            last_exercise_score = f"Last Workout ({target_activity}): {accuracy:.1f}% Match - {rating}"
+            last_exercise_score = f"Last Workout ({target_activity}): {accuracy:.1f}% Overall - {rating}"
             scoreboard_label.text = last_exercise_score
 
             current_game_index += 1

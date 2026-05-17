@@ -11,18 +11,8 @@ import joblib
 import os
 import argparse
 
-#TODO's
-# 1. import all training data (jumping, rowing, running, lifting)
-# 2. split into two sets (train dataset, test data set)
-# 3. preprocess data before training (e.g. filtering, normalization, transformation into frequency domain, ...)
-# 4. train ML classifier
-# 5. evaluate accuracy of model with test data set
-# 6.  The  program should  then predict activities based on  sensor data  from  the DIPPID  device. The prediction  should 
-# run continuously without requiring further intervention by the user. 
-# 7. visualize fitness trainer with pyglet
-
 parser = argparse.ArgumentParser()
-# TODO exchange here the default path if you (tutors) want to use exclusevely your dataset 
+# TODO exchange here the default path with default="./tutor-dataset" if you (tutors) want to use exclusevely your dataset 
 parser.add_argument("--data", type=str, default="./dataset")
 args = parser.parse_args()
 
@@ -87,7 +77,7 @@ test_set.to_csv("test_set.csv", index=False)
 print("finally the test dataset and training dataset was created!")
 
 print("Now lets do some training!")
-# train data!
+# train data
 # mean removal
 train_data = pd.read_csv("train_set.csv")
 
@@ -128,27 +118,3 @@ print(f"and the accuracy is *drumroll* {accuracy * 100:.2f}%")
 
 print("\nreport:")
 print(classification_report(y_test, y_pred, target_names=["rowing", "running", "lifting", "jumpingjacks"]))
-
-"""
-train_mean = train_data.copy()
-train_mean[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']] = scaled_samples
-# minmax scaler
-# mms = MinMaxScaler()
-# mms.fit(train_mean[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
-
-# normalized
-scaled_samples = mms.transform(train_mean[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']])
-train_normalized = train_mean.copy()
-train_normalized[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']] = scaled_samples
-
-# train ML classifier
-x_train = train_normalized[['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']]
-y_train = train_normalized['classification']
-
-clf = SVC(kernel='linear')
-clf.fit(x_train, y_train)
-
-joblib.dump(clf, 'svm_model.pkl')
-joblib.dump(scaler, 'std_scaler.pkl')
-joblib.dump(mms, 'minmax_scaler.pkl')
-"""
