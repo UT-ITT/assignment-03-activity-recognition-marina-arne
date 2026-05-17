@@ -33,7 +33,11 @@ Example: `python3 gather-data.py arne 1`
 
 **Supported activities:** `running`, `rowing`, `lifting`, `jumpingjacks`
 
+
+#TODO UPDATE README
 # fitness_trainer.py
+
+# activity_recognizer.py
 
 ## Background to some design choices
 
