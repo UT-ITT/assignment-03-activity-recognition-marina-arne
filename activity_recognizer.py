@@ -12,7 +12,9 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser()
-# TODO exchange here the default path with default="./tutor-dataset" if you (tutors) want to use exclusevely your dataset 
+# TODO comment in this line to use the files in the folder tutor-dataset
+# parser.add_argument("--data", type=str, default="./tutor-dataset")
+# TODO comment out this line to use the line above
 parser.add_argument("--data", type=str, default="./dataset")
 args = parser.parse_args()
 
@@ -20,7 +22,7 @@ path = args.data
 
 # prepare data for edge cases (contains double columns, missing values etc.)
 dataset_csv = glob.glob(os.path.join(path, "*.csv"))
-print("pray to any god that it works")
+print("pray to any god that the data fetching works")
 
 df_list = []
 class_dict = {"rowing": 0, 
@@ -41,7 +43,7 @@ for file_path in dataset_csv:
     df_cleanup = df[keep_indices]
     # checking for rows with 0 and columns with 1
     df_cleaned = df_cleanup.dropna(axis=0).copy()
-
+    # add the columns acc_mag and gyro_mag
     base_cols = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
     if all(col in df_cleaned.columns for col in base_cols):
         df_cleaned['acc_mag'] = np.sqrt(df_cleaned['acc_x']**2 + df_cleaned['acc_y']**2 + df_cleaned['acc_z']**2)
@@ -86,7 +88,7 @@ sensor_data = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z', 'acc_mag
 x_train = train_data[sensor_data]
 y_train = train_data['classification']
 
-# pipeline contains scaler and svm
+# pipeline contains scaler and randomForest
 clf_pipeline = Pipeline([
     ("scaler", StandardScaler()),
     ("rf", RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1))
