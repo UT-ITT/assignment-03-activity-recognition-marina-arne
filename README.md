@@ -17,7 +17,45 @@ The Assignment No. 03 is split into following exercises:
 * **`tutor-dataset/`**: here should be the csv files be paste into of tutors dataset
 
 ---
+## Virtual Environment
 
+This project is written in **Python** and was developed using **Python 3.14.4**. 
+
+To run the project locally, please follow these initialization steps:
+
+1. **Create a Virtual Environment:**
+   ```bash
+   python3 -m venv venv
+   ```
+   *(Note: Depending on your system, you might need to use `python` or explicitly `python3.14` instead).*
+
+2. **Activate the Virtual Environment:**
+   Before installing any dependencies or running the scripts, you must activate the newly created environment:
+
+   * **Mac / Linux:**
+     ```bash
+     source venv/bin/activate
+     ```
+   * **Windows (Command Prompt):**
+     ```cmd
+     venv\Scripts\activate.bat
+     ```
+   * **Windows (PowerShell):**
+     ```powershell
+     .\venv\Scripts\Activate.ps1
+     ```
+
+   Once activated, you should see `(venv)` at the beginning of your command line prompt.
+
+3. **Install Dependencies:**
+   Innstall all the required packages from the `requirements.txt` file:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+Your setup is now complete and the project is ready to go!
+
+---
 # 1. Gathering Training Data
 
 The file **`gather-data.py`** captures IMU sensor data from a DIPPID device and saves it as a CSV file for activity recognition training.
@@ -47,6 +85,8 @@ The file **`gather-data.py`** captures IMU sensor data from a DIPPID device and 
 * Records accelerometer (`acc_x/y/z`) and gyroscope (`gyro_x/y/z`) data for **10 seconds**
 * Resamples the data to **100 Hz** using pandas
 * Saves to `data/<name>-<activity>-<number>.csv` with columns: `id`, `timestamp`, `acc_x`, `acc_y`, `acc_z`, `gyro_x`, `gyro_y`, `gyro_z`
+
+  > **DISCLAIMER:** The folder *data* is not used directly as source folder in activity-recognizer.py since the folder *dataset* contains already the data of all course participants. But otherwise we would have used the same folder for saving the gather-data.py output as the activity-recognizer.py input folder.
 
 **Supported activities:** `running`, `rowing`, `lifting`, `jumpingjacks`
 
